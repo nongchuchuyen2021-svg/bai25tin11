@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luyện Tập – Mục 1: Ảnh Số | Tin 11</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --accent: #00d4aa;
+    --accent2: #ff6b35;
+    --accent3: #4f9cf9;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --correct: #3fb950;
+    --wrong: #f85149;
+    --warn: #f0883e;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(0,212,170,.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(79,156,249,.06) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .brand { display: flex; flex-direction: column; }
+  .brand-title { font-size: .7rem; text-transform: uppercase; letter-spacing: 3px; color: var(--accent); font-weight: 600; }
+  .brand-sub { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+
+  /* ── TIMER ── */
+  #timer-box {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 20px;
+  }
+  #timer-icon { font-size: 1.1rem; }
+  #timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem; font-weight: 600;
+    color: var(--accent);
+    min-width: 70px; text-align: center;
+  }
+  #timer-display.warn { color: var(--warn); animation: pulse .8s infinite; }
+
+  /* ── TAB WARNING ── */
+  #tab-warning {
+    background: rgba(248,81,73,.15);
+    border: 1px solid var(--wrong);
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    font-size: .82rem;
+    color: var(--wrong);
+    display: none;
+    margin: 12px 32px 0;
+    animation: slideIn .3s ease;
+  }
+  #tab-warning.show { display: flex; align-items: center; gap: 8px; }
+
+  /* ── MAIN ── */
+  main { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  .section-title {
+    font-size: .68rem; text-transform: uppercase; letter-spacing: 4px;
+    color: var(--text-muted); margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 2rem; font-weight: 800; line-height: 1.2;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 32px;
+  }
+
+  /* ── QUESTIONS ── */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color .25s, box-shadow .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .question-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), var(--accent3));
+    border-radius: 3px 0 0 3px;
+  }
+  .question-card:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,170,.1);
+  }
+  .q-meta {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .q-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #000; font-weight: 700; font-size: .75rem;
+    border-radius: 999px; padding: 3px 12px;
+    white-space: nowrap;
+  }
+  .q-type {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-muted);
+  }
+  .q-text {
+    font-size: .97rem; line-height: 1.65; color: var(--text);
+    margin-bottom: 14px;
+  }
+  .q-text strong { color: var(--accent); }
+
+  /* ── ANSWER INPUT ── */
+  .answer-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: .9rem;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 90px;
+    transition: border-color .2s, background .2s;
+    line-height: 1.6;
+  }
+  .answer-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(0,212,170,.03);
+  }
+  .answer-input::placeholder { color: var(--text-muted); }
+  .answer-input.correct { border-color: var(--correct); background: rgba(63,185,80,.05); }
+  .answer-input.wrong { border-color: var(--wrong); background: rgba(248,81,73,.05); }
+  .answer-input[readonly] { opacity: .7; cursor: not-allowed; }
+
+  /* ── FILL IN INLINE ── */
+  .fill-container { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .fill-container span { font-size: .95rem; color: var(--text); }
+  .fill-input {
+    background: var(--bg);
+    border: none; border-bottom: 2px solid var(--accent);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .95rem; font-weight: 600;
+    padding: 4px 8px;
+    min-width: 120px;
+    transition: border-color .2s;
+  }
+  .fill-input:focus { outline: none; border-color: var(--accent3); }
+  .fill-input.correct { border-color: var(--correct); color: var(--correct); }
+  .fill-input.wrong { border-color: var(--wrong); color: var(--wrong); }
+  .fill-input[readonly] { opacity: .7; }
+
+  /* ── MC OPTIONS ── */
+  .mc-options { display: flex; flex-direction: column; gap: 8px; }
+  .mc-option {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px;
+    cursor: pointer; transition: border-color .2s, background .2s;
+    font-size: .9rem;
+  }
+  .mc-option:hover { border-color: var(--accent); background: rgba(0,212,170,.04); }
+  .mc-option input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .mc-option.correct { border-color: var(--correct); background: rgba(63,185,80,.08); color: var(--correct); }
+  .mc-option.wrong { border-color: var(--wrong); background: rgba(248,81,73,.08); color: var(--wrong); }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    margin-top: 10px; padding: 10px 14px;
+    border-radius: 8px; font-size: .85rem; display: none;
+    animation: slideIn .3s ease;
+  }
+  .feedback.show { display: flex; gap: 8px; align-items: flex-start; }
+  .feedback.correct { background: rgba(63,185,80,.12); border: 1px solid var(--correct); color: var(--correct); }
+  .feedback.wrong { background: rgba(248,81,73,.12); border: 1px solid var(--wrong); color: var(--wrong); }
+  .feedback-icon { font-size: 1rem; flex-shrink: 0; }
+  .correct-answer { font-weight: 600; color: var(--accent); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 999px;
+    font-family: 'Sora', sans-serif; font-size: .88rem; font-weight: 700;
+    cursor: pointer; border: none; transition: all .2s;
+    letter-spacing: .5px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    color: #000;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,170,.3); }
+  .btn-secondary {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: transparent; border: 1px solid var(--wrong);
+    color: var(--wrong);
+  }
+  .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+  .btn-group {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-top: 36px; justify-content: center;
+  }
+
+  /* ── RESULT PANEL ── */
+  #result-panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px; margin-top: 32px;
+    animation: slideIn .4s ease;
+  }
+  #result-panel.show { display: block; }
+  .result-header { text-align: center; margin-bottom: 32px; }
+  .result-score {
+    font-size: 4rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .result-label { font-size: .8rem; text-transform: uppercase; letter-spacing: 3px; color: var(--text-muted); margin-top: 4px; }
+  .result-meta {
+    display: flex; justify-content: center; gap: 32px;
+    flex-wrap: wrap; margin: 24px 0;
+  }
+  .result-stat { text-align: center; }
+  .result-stat-val { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .result-stat-label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
+  .result-grade {
+    text-align: center; font-size: 1.1rem; font-weight: 600;
+    padding: 12px; border-radius: 8px; margin-bottom: 24px;
+  }
+  .grade-A { background: rgba(63,185,80,.15); color: var(--correct); border: 1px solid var(--correct); }
+  .grade-B { background: rgba(79,156,249,.15); color: var(--accent3); border: 1px solid var(--accent3); }
+  .grade-C { background: rgba(240,136,62,.15); color: var(--warn); border: 1px solid var(--warn); }
+  .grade-D { background: rgba(248,81,73,.15); color: var(--wrong); border: 1px solid var(--wrong); }
+
+  .export-group {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin-top: 20px;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    height: 4px; background: var(--border); border-radius: 4px;
+    margin: 24px 0 32px;
+  }
+  .progress-bar {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── OVERLAY (tab cheat) ── */
+  #cheat-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(13,17,23,.97);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px;
+  }
+  #cheat-overlay.show { display: flex; }
+  .overlay-icon { font-size: 4rem; }
+  .overlay-title { font-size: 1.8rem; font-weight: 800; color: var(--wrong); }
+  .overlay-sub { color: var(--text-muted); font-size: .95rem; text-align: center; max-width: 400px; }
+  .tab-dots { display: flex; gap: 8px; }
+  .tab-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--border); transition: background .3s;
+  }
+  .tab-dot.used { background: var(--wrong); }
+  .tab-dot.remain { background: var(--accent); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: .5; }
+  }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── COPY PROTECT NOTICE ── */
+  .notice {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(79,156,249,.08);
+    border: 1px solid rgba(79,156,249,.25);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: .8rem; color: var(--accent3);
+    margin-bottom: 28px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <span class="brand-title">Tin học 11 · Bài 25 · Mục 1</span>
+    <span class="brand-sub">Luyện Tập: Ảnh Số</span>
+  </div>
+  <div id="timer-box">
+    <span id="timer-icon">⏱</span>
+    <span id="timer-display">00:00</span>
+  </div>
+</header>
+
+<!-- TAB WARNING BANNER -->
+<div id="tab-warning">
+  <span>⚠️</span>
+  <span id="tab-warn-msg"></span>
+</div>
+
+<!-- CHEAT OVERLAY -->
+<div id="cheat-overlay">
+  <div class="overlay-icon">🚫</div>
+  <div class="overlay-title">BÀI THI ĐÃ BỊ KHÓA</div>
+  <div class="overlay-sub">Bạn đã chuyển tab quá <strong>3 lần</strong>. Bài thi không hợp lệ. Hãy liên hệ giáo viên để làm lại.</div>
+</div>
+
+<main>
+  <p class="section-title">Chủ đề 7 · Bài 25</p>
+  <h1>Kiểm Tra Kiến Thức<br>Ảnh Số &amp; Ảnh Bitmap</h1>
+
+  <div class="notice">
+    🔒 Phần trả lời được bảo vệ — không thể dán nội dung từ bên ngoài. Chỉ được phép chuyển tab tối đa 3 lần.
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <!-- ────── QUESTIONS ────── -->
+  <div id="quiz-container"></div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" id="btn-submit" onclick="submitQuiz()">✅ Nộp Bài</button>
+    <button class="btn btn-secondary" id="btn-retry" onclick="resetQuiz()" style="display:none">🔄 Làm Lại</button>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div id="result-panel">
+    <div class="result-header">
+      <div class="result-score" id="r-score">0/10</div>
+      <div class="result-label">Điểm số</div>
+    </div>
+    <div class="result-grade" id="r-grade"></div>
+    <div class="result-meta">
+      <div class="result-stat">
+        <div class="result-stat-val" id="r-correct">0</div>
+        <div class="result-stat-label">Đúng</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="r-wrong">0</div>
+        <div class="result-stat-label">Sai</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="r-time">00:00</div>
+        <div class="result-stat-label">Thời gian</div>
+      </div>
+    </div>
+    <hr class="divider">
+    <p style="text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:16px;">Xuất kết quả</p>
+    <div class="export-group">
+      <button class="btn btn-secondary" onclick="exportTXT()">📄 Xuất TXT</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">📊 Xuất Excel (CSV)</button>
+      <button class="btn btn-secondary" onclick="exportPDF()">🖨 In / Xuất PDF</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    id: 1,
+    type: 'mc',
+    text: 'Ảnh <strong>bitmap</strong> được tạo thành từ các yếu tố nào sau đây?',
+    options: [
+      'Các đường cong và hình học vector',
+      'Các điểm ảnh (pixel)',
+      'Các lớp màu CMYK chồng lên nhau',
+      'Các phương trình toán học'
+    ],
+    correct: 1,
+    explain: 'Ảnh bitmap là tập hợp các <strong>điểm ảnh (pixel)</strong>. Mỗi pixel có một bộ giá trị màu sắc và cường độ.'
+  },
+  {
+    id: 2,
+    type: 'mc',
+    text: '<strong>Độ phân giải</strong> của ảnh thường được đo bằng đơn vị nào?',
+    options: ['Pixel', 'DPI (dots per inch)', 'Megabyte', 'Hz'],
+    correct: 1,
+    explain: 'Độ phân giải thường được xác định bằng số điểm ảnh trên một inch: <strong>dpi</strong> (dots per inch) hoặc <strong>ppi</strong> (pixels per inch).'
+  },
+  {
+    id: 3,
+    type: 'fill',
+    text: 'Một camera chụp ảnh kích thước 2560 × 1920 pixel có tổng cộng khoảng <u>__A__</u> triệu điểm ảnh, nên được gọi là camera <u>__B__</u> megapixel.',
+    blanks: [
+      { key: '__A__', answer: '5', hint: 'Tính: 2560 × 1920 = 4 915 200 ≈ 5 triệu' },
+      { key: '__B__', answer: '5', hint: 'Xấp xỉ 5 triệu điểm ảnh' }
+    ]
+  },
+  {
+    id: 4,
+    type: 'essay',
+    text: 'Hãy giải thích: <strong>Tại sao hai bức ảnh cùng kích thước pixel nhưng có độ phân giải khác nhau lại cho chất lượng in khác nhau?</strong>',
+    keywords: ['độ phân giải', 'inch', 'mật độ', 'dpi', 'rõ nét', 'điểm ảnh'],
+    sampleAnswer: 'Độ phân giải cho biết số điểm ảnh trên mỗi inch khi in. Ảnh có độ phân giải cao hơn nghĩa là nhiều điểm ảnh được dồn vào mỗi inch, làm ảnh sắc nét hơn. Hai ảnh cùng số pixel nhưng độ phân giải khác nhau sẽ có kích thước in khác nhau và mức độ chi tiết khác nhau.'
+  },
+  {
+    id: 5,
+    type: 'mc',
+    text: 'Ảnh số dùng để in thường cần độ phân giải tối thiểu bao nhiêu <strong>dpi</strong>?',
+    options: ['72 dpi', '100 dpi', '300 dpi', '600 dpi'],
+    correct: 2,
+    explain: 'Ảnh dùng để in thường cần độ phân giải <strong>ít nhất 300 dpi</strong> để đảm bảo chất lượng hình ảnh sắc nét.'
+  },
+  {
+    id: 6,
+    type: 'calc',
+    text: 'Một tệp ảnh có kích thước <strong>1200 × 1800 pixel</strong> được in ở độ phân giải <strong>300 dpi</strong>.\n\nHỏi: Kích thước in của ảnh (chiều rộng × chiều cao) là bao nhiêu inch?',
+    answer: '4 × 6',
+    acceptList: ['4x6', '4×6', '4 x 6', '4 × 6', '4 inch x 6 inch', '4×6 inch'],
+    explain: 'Chiều rộng: 1200 ÷ 300 = <strong>4 inch</strong>. Chiều cao: 1800 ÷ 300 = <strong>6 inch</strong>. Vậy ảnh có kích thước <strong>4 × 6 inch</strong>.'
+  },
+  {
+    id: 7,
+    type: 'mc',
+    text: 'Khi <strong>tăng độ phân giải</strong> của một ảnh (giữ nguyên số pixel), điều gì xảy ra với kích thước in?',
+    options: [
+      'Kích thước in tăng lên',
+      'Kích thước in giảm xuống',
+      'Kích thước in không đổi',
+      'Ảnh bị mờ đi'
+    ],
+    correct: 1,
+    explain: 'Khi tăng độ phân giải (dpi) mà giữ nguyên số pixel, mỗi inch sẽ chứa nhiều điểm ảnh hơn → <strong>kích thước in nhỏ lại</strong> nhưng ảnh sắc nét hơn.'
+  },
+  {
+    id: 8,
+    type: 'essay',
+    text: 'Ảnh bitmap khác ảnh vector như thế nào? Kể ít nhất <strong>2 điểm khác biệt</strong> và nêu một ví dụ định dạng tệp của mỗi loại.',
+    keywords: ['pixel', 'vector', 'phóng to', 'vô hạn', 'bmp', 'jpeg', 'png', 'svg', 'ai', 'eps'],
+    sampleAnswer: 'Ảnh bitmap được tạo bởi các điểm ảnh (pixel); khi phóng to sẽ bị vỡ hạt. Ảnh vector dùng các phương trình toán học để vẽ hình; có thể phóng to vô hạn mà không mất nét. Định dạng bitmap: bmp, jpeg, png. Định dạng vector: svg, ai, eps.'
+  },
+  {
+    id: 9,
+    type: 'fill',
+    text: 'Điền vào chỗ trống:\n"Ảnh số được xác định bởi tập hợp các <u>__A__</u>, mỗi điểm ảnh có một bộ giá trị thể hiện <u>__B__</u> và cường độ."',
+    blanks: [
+      { key: '__A__', answer: 'điểm ảnh', hint: 'Pixel tiếng Việt' },
+      { key: '__B__', answer: 'màu sắc', hint: 'Thông tin về hue/color' }
+    ]
+  },
+  {
+    id: 10,
+    type: 'calc',
+    text: 'Một ảnh kích thước <strong>600 × 600 pixel</strong>.\n• Nếu in ở <strong>100 dpi</strong> → kích thước = A inch.\n• Nếu in ở <strong>200 dpi</strong> → kích thước = B inch.\n\nKích thước A gấp mấy lần kích thước B?',
+    answer: '2',
+    acceptList: ['2', '2 lần', 'gấp 2', 'gấp 2 lần', '2 lan'],
+    explain: 'Ở 100 dpi: 600÷100 = 6 inch. Ở 200 dpi: 600÷200 = 3 inch. Vậy A = 6 inch, B = 3 inch → A <strong>gấp 2 lần</strong> B.'
+  }
+];
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let timerInterval = null;
+let elapsedSeconds = 0;
+let submitted = false;
+let tabCount = 0;
+const MAX_TABS = 3;
+let tabLocked = false;
+
+// ─────────────────────────────────────────────
+//  TIMER
+// ─────────────────────────────────────────────
+function startTimer() {
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    document.getElementById('timer-display').textContent = formatTime(elapsedSeconds);
+    if (elapsedSeconds >= 25*60) {
+      document.getElementById('timer-display').classList.add('warn');
+    }
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); }
+function formatTime(s) {
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const ss = (s%60).toString().padStart(2,'0');
+  return `${m}:${ss}`;
+}
+
+// ─────────────────────────────────────────────
+//  ANTI-CHEAT: TAB SWITCH + COPY PREVENTION
+// ─────────────────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+  if (submitted || tabLocked) return;
+  if (document.hidden) {
+    tabCount++;
+    updateTabWarning();
+    if (tabCount >= MAX_TABS) {
+      lockExam();
+    }
+  }
+});
+
+function updateTabWarning() {
+  const remaining = MAX_TABS - tabCount;
+  const msg = remaining > 0
+    ? `⚠ Đã chuyển tab ${tabCount}/${MAX_TABS} lần. Còn ${remaining} lần được phép.`
+    : 'Đã dùng hết lượt chuyển tab.';
+  const el = document.getElementById('tab-warning');
+  document.getElementById('tab-warn-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function lockExam() {
+  tabLocked = true;
+  stopTimer();
+  document.getElementById('cheat-overlay').classList.add('show');
+}
+
+// Prevent paste in all answer inputs
+document.addEventListener('paste', e => {
+  if (e.target.classList.contains('answer-input') ||
+      e.target.classList.contains('fill-input') ||
+      e.target.tagName === 'TEXTAREA' ||
+      e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    showPasteWarning(e.target);
+  }
+}, true);
+
+function showPasteWarning(el) {
+  const old = el.placeholder;
+  el.placeholder = '❌ Không được dán nội dung! Hãy gõ trực tiếp.';
+  el.style.borderColor = 'var(--wrong)';
+  setTimeout(() => {
+    el.placeholder = old;
+    el.style.borderColor = '';
+  }, 2000);
+}
+
+// Prevent right-click context menu
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// ─────────────────────────────────────────────
+//  RENDER QUIZ
+// ─────────────────────────────────────────────
+function buildQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+
+  QUESTIONS.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `card-${q.id}`;
+
+    let inner = `
+      <div class="q-meta">
+        <span class="q-num">Câu ${idx+1}</span>
+        <span class="q-type">${typeLabel(q.type)}</span>
+      </div>
+      <div class="q-text">${q.text.replace(/\n/g,'<br>')}</div>
+    `;
+
+    if (q.type === 'mc') {
+      inner += `<div class="mc-options">`;
+      q.options.forEach((opt, oi) => {
+        inner += `
+          <label class="mc-option" id="opt-${q.id}-${oi}">
+            <input type="radio" name="mc-${q.id}" value="${oi}" onchange="onMCChange(${q.id})">
+            <span>${opt}</span>
+          </label>`;
+      });
+      inner += `</div>`;
+    } else if (q.type === 'fill') {
+      let html = q.text;
+      q.blanks.forEach((b,bi) => {
+        html = html.replace(b.key,
+          `<input class="fill-input" id="fill-${q.id}-${bi}"
+            placeholder="${b.hint}"
+            autocomplete="off" spellcheck="false"
+            oninput="updateProgress()">`);
+      });
+      inner += `<div class="fill-container" style="line-height:2.2">${html}</div>`;
+    } else if (q.type === 'essay') {
+      inner += `
+        <textarea class="answer-input" id="essay-${q.id}"
+          placeholder="Viết câu trả lời của bạn vào đây... (không được dán từ bên ngoài)"
+          spellcheck="false"
+          oninput="updateProgress()"></textarea>`;
+    } else if (q.type === 'calc') {
+      inner += `
+        <textarea class="answer-input" id="calc-${q.id}"
+          placeholder="Nhập đáp án (ví dụ: 4 × 6 inch) — tự gõ, không dán"
+          rows="2" style="min-height:60px"
+          spellcheck="false"
+          oninput="updateProgress()"></textarea>`;
+    }
+
+    inner += `<div class="feedback" id="fb-${q.id}"></div>`;
+    card.innerHTML = inner;
+    container.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+function typeLabel(t) {
+  return { mc:'Trắc nghiệm', fill:'Điền vào chỗ trống', essay:'Tự luận', calc:'Tính toán' }[t] || t;
+}
+
+function onMCChange(qid) { updateProgress(); }
+
+// ─────────────────────────────────────────────
+//  PROGRESS
+// ─────────────────────────────────────────────
+function updateProgress() {
+  let answered = 0;
+  QUESTIONS.forEach(q => {
+    if (q.type==='mc') {
+      if (document.querySelector(`input[name="mc-${q.id}"]:checked`)) answered++;
+    } else if (q.type==='fill') {
+      const allFilled = q.blanks.every((_,bi) => {
+        const el = document.getElementById(`fill-${q.id}-${bi}`);
+        return el && el.value.trim().length > 0;
+      });
+      if (allFilled) answered++;
+    } else {
+      const el = document.getElementById(`essay-${q.id}`) || document.getElementById(`calc-${q.id}`);
+      if (el && el.value.trim().length > 10) answered++;
+    }
+  });
+  const pct = (answered / QUESTIONS.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ─────────────────────────────────────────────
+//  SUBMIT
+// ─────────────────────────────────────────────
+function submitQuiz() {
+  if (submitted) return;
+  submitted = true;
+  stopTimer();
+
+  let correctCount = 0;
+  const details = [];
+
+  QUESTIONS.forEach((q, idx) => {
+    const fb = document.getElementById(`fb-${q.id}`);
+    let isCorrect = false;
+    let userAnswer = '';
+    let correctAns = '';
+
+    if (q.type === 'mc') {
+      const sel = document.querySelector(`input[name="mc-${q.id}"]:checked`);
+      userAnswer = sel ? q.options[parseInt(sel.value)] : '(Không trả lời)';
+      isCorrect = sel && parseInt(sel.value) === q.correct;
+      correctAns = q.options[q.correct];
+      // Style options
+      q.options.forEach((_, oi) => {
+        const label = document.getElementById(`opt-${q.id}-${oi}`);
+        label.querySelector('input').disabled = true;
+        if (oi === q.correct) label.classList.add('correct');
+        else if (sel && parseInt(sel.value) === oi) label.classList.add('wrong');
+      });
+    } else if (q.type === 'fill') {
+      const blanksOk = q.blanks.every((b,bi) => {
+        const el = document.getElementById(`fill-${q.id}-${bi}`);
+        el.readOnly = true;
+        const val = el.value.trim().toLowerCase();
+        const ans = b.answer.toLowerCase();
+        const ok = val === ans || val.includes(ans) || ans.includes(val);
+        el.classList.add(ok ? 'correct' : 'wrong');
+        return ok;
+      });
+      isCorrect = blanksOk;
+      userAnswer = q.blanks.map((b,bi) => document.getElementById(`fill-${q.id}-${bi}`).value).join(' | ');
+      correctAns = q.blanks.map(b => b.answer).join(' | ');
+    } else if (q.type === 'essay') {
+      const el = document.getElementById(`essay-${q.id}`);
+      userAnswer = el.value.trim();
+      el.readOnly = true;
+      const lc = userAnswer.toLowerCase();
+      const hits = q.keywords.filter(k => lc.includes(k));
+      isCorrect = hits.length >= Math.ceil(q.keywords.length * 0.4);
+      correctAns = q.sampleAnswer;
+      el.classList.add(isCorrect ? 'correct' : 'wrong');
+    } else if (q.type === 'calc') {
+      const el = document.getElementById(`calc-${q.id}`);
+      userAnswer = el.value.trim();
+      el.readOnly = true;
+      const lc = userAnswer.toLowerCase().replace(/\s+/g,'');
+      isCorrect = q.acceptList.some(a => lc.includes(a.toLowerCase().replace(/\s+/g,'')));
+      correctAns = q.answer;
+      el.classList.add(isCorrect ? 'correct' : 'wrong');
+    }
+
+    if (isCorrect) correctCount++;
+
+    // Feedback
+    fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+    if (isCorrect) {
+      fb.innerHTML = `<span class="feedback-icon">✅</span><span>Chính xác! ${q.explain || ''}</span>`;
+    } else {
+      fb.innerHTML = `<span class="feedback-icon">❌</span><span>Chưa đúng. Đáp án: <span class="correct-answer">${correctAns}</span>. ${q.explain || q.sampleAnswer || ''}</span>`;
+    }
+
+    details.push({
+      idx: idx+1, type: typeLabel(q.type),
+      question: q.text.replace(/<[^>]+>/g,''),
+      userAnswer, correctAns, isCorrect
+    });
+  });
+
+  // Show result
+  const total = QUESTIONS.length;
+  const score = (correctCount / total * 10).toFixed(1);
+  document.getElementById('r-score').textContent = `${score}/10`;
+  document.getElementById('r-correct').textContent = correctCount;
+  document.getElementById('r-wrong').textContent = total - correctCount;
+  document.getElementById('r-time').textContent = formatTime(elapsedSeconds);
+
+  const gradeEl = document.getElementById('r-grade');
+  if (score >= 8.5) { gradeEl.textContent = '🏆 Xuất sắc — Nắm vững kiến thức ảnh số!'; gradeEl.className = 'result-grade grade-A'; }
+  else if (score >= 7) { gradeEl.textContent = '👍 Khá — Cần ôn thêm một số khái niệm.'; gradeEl.className = 'result-grade grade-B'; }
+  else if (score >= 5) { gradeEl.textContent = '📖 Trung bình — Hãy đọc lại lý thuyết Mục 1.'; gradeEl.className = 'result-grade grade-C'; }
+  else { gradeEl.textContent = '⚠ Yếu — Cần ôn luyện kỹ hơn trước khi tiếp tục.'; gradeEl.className = 'result-grade grade-D'; }
+
+  document.getElementById('result-panel').classList.add('show');
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('btn-retry').style.display = 'inline-flex';
+
+  // store for export
+  window._quizResult = { score, correctCount, total, elapsed: formatTime(elapsedSeconds), details };
+
+  document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────
+function resetQuiz() {
+  submitted = false;
+  tabCount = 0;
+  tabLocked = false;
+  elapsedSeconds = 0;
+  document.getElementById('timer-display').textContent = '00:00';
+  document.getElementById('timer-display').classList.remove('warn');
+  document.getElementById('result-panel').classList.remove('show');
+  document.getElementById('btn-submit').style.display = 'inline-flex';
+  document.getElementById('btn-retry').style.display = 'none';
+  document.getElementById('cheat-overlay').classList.remove('show');
+  buildQuiz();
+  startTimer();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────
+//  EXPORT
+// ─────────────────────────────────────────────
+function exportTXT() {
+  const r = window._quizResult;
+  if (!r) return;
+  let txt = `===== KẾT QUẢ BÀI KIỂM TRA =====\n`;
+  txt += `Môn: Tin học 11 – Bài 25 – Mục 1: Ảnh Số\n`;
+  txt += `Ngày: ${new Date().toLocaleDateString('vi-VN')}\n`;
+  txt += `Điểm: ${r.score}/10  |  Đúng: ${r.correctCount}/${r.total}  |  Thời gian: ${r.elapsed}\n\n`;
+  r.details.forEach(d => {
+    txt += `─────────────────────\n`;
+    txt += `Câu ${d.idx} [${d.type}]\n`;
+    txt += `Câu hỏi: ${d.question}\n`;
+    txt += `Trả lời: ${d.userAnswer}\n`;
+    txt += `Đáp án đúng: ${d.correctAns}\n`;
+    txt += `Kết quả: ${d.isCorrect ? '✔ Đúng' : '✘ Sai'}\n\n`;
+  });
+  download('ket-qua-anh-so.txt', txt, 'text/plain;charset=utf-8');
+}
+
+function exportCSV() {
+  const r = window._quizResult;
+  if (!r) return;
+  const BOM = '\uFEFF';
+  let csv = BOM + `"Câu","Loại","Câu hỏi","Trả lời của học sinh","Đáp án đúng","Kết quả"\n`;
+  r.details.forEach(d => {
+    csv += `"${d.idx}","${d.type}","${esc(d.question)}","${esc(d.userAnswer)}","${esc(d.correctAns)}","${d.isCorrect?'Đúng':'Sai'}"\n`;
+  });
+  csv += `\n"","","","Điểm","${r.score}/10","Thời gian: ${r.elapsed}"`;
+  download('ket-qua-anh-so.csv', csv, 'text/csv;charset=utf-8');
+}
+
+function esc(s) { return String(s).replace(/"/g,'""'); }
+
+function exportPDF() {
+  window.print();
+}
+
+function download(filename, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+  a.download = filename;
+  a.click();
+}
+
+// ─────────────────────────────────────────────
+//  PRINT STYLE
+// ─────────────────────────────────────────────
+const printStyle = document.createElement('style');
+printStyle.textContent = `
+@media print {
+  header, #tab-warning, .btn-group, .notice, .export-group,
+  .progress-bar-wrap { display: none !important; }
+  body { background: white !important; color: #000 !important; }
+  .question-card { border: 1px solid #ccc !important; break-inside: avoid; }
+  #result-panel { display: block !important; border: 1px solid #ccc !important; }
+  .answer-input, .fill-input { border: 1px solid #ccc !important; background: white !important; color: #000 !important; }
+  .result-score { color: #000 !important; -webkit-text-fill-color: #000 !important; }
+}`;
+document.head.appendChild(printStyle);
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+buildQuiz();
+startTimer();
+</script>
+</body>
+</html>
