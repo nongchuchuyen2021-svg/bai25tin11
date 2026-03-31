@@ -45,6 +45,7 @@
     flex-wrap: wrap; gap: 12px;
   }
   .brand { display: flex; flex-direction: column; }
+  .brand-school { font-size: .68rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); font-weight: 400; }
   .brand-title { font-size: .7rem; text-transform: uppercase; letter-spacing: 3px; color: var(--accent); font-weight: 600; }
   .brand-sub { font-size: 1.05rem; font-weight: 700; color: var(--text); }
 
@@ -315,7 +316,34 @@
 
   .divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 
-  /* ── COPY PROTECT NOTICE ── */
+  /* ── STUDENT INFO ── */
+  .student-info-bar {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .student-info-bar label {
+    font-size: .78rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    white-space: nowrap;
+  }
+  .student-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: .88rem;
+    padding: 7px 14px;
+    transition: border-color .2s;
+    width: 200px;
+  }
+  .student-input.class-input { width: 110px; }
+  .student-input:focus { outline: none; border-color: var(--accent); }
+  .student-input::placeholder { color: var(--text-muted); font-size: .82rem; }
+  .student-input[readonly] { opacity: .65; cursor: default; }
+  .info-sep { color: var(--border); font-size: 1.2rem; }
   .notice {
     display: flex; align-items: center; gap: 8px;
     background: rgba(79,156,249,.08);
@@ -331,6 +359,7 @@
 <!-- HEADER -->
 <header>
   <div class="brand">
+    <span class="brand-school">THPT Na Rì</span>
     <span class="brand-title">Tin học 11 · Bài 25 · Mục 1</span>
     <span class="brand-sub">Luyện Tập: Ảnh Số</span>
   </div>
@@ -340,7 +369,14 @@
   </div>
 </header>
 
-<!-- TAB WARNING BANNER -->
+<!-- STUDENT INFO BAR -->
+<div class="student-info-bar">
+  <label for="stu-name">Họ và tên:</label>
+  <input id="stu-name" class="student-input" type="text" placeholder="" autocomplete="off" spellcheck="false">
+  <span class="info-sep">|</span>
+  <label for="stu-class">Lớp:</label>
+  <input id="stu-class" class="student-input class-input" type="text" placeholder="" autocomplete="off" spellcheck="false">
+</div>
 <div id="tab-warning">
   <span>⚠️</span>
   <span id="tab-warn-msg"></span>
@@ -375,6 +411,8 @@
   <!-- RESULT PANEL -->
   <div id="result-panel">
     <div class="result-header">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);margin-bottom:4px">THPT Na Rì</div>
+      <div id="r-student" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:var(--text)"></div>
       <div class="result-score" id="r-score">0/10</div>
       <div class="result-label">Điểm số</div>
     </div>
@@ -564,6 +602,7 @@ function lockExam() {
 document.addEventListener('paste', e => {
   if (e.target.classList.contains('answer-input') ||
       e.target.classList.contains('fill-input') ||
+      e.target.classList.contains('student-input') ||
       e.target.tagName === 'TEXTAREA' ||
       e.target.tagName === 'INPUT') {
     e.preventDefault();
@@ -572,11 +611,8 @@ document.addEventListener('paste', e => {
 }, true);
 
 function showPasteWarning(el) {
-  const old = el.placeholder;
-  el.placeholder = '❌ Không được dán nội dung! Hãy gõ trực tiếp.';
   el.style.borderColor = 'var(--wrong)';
   setTimeout(() => {
-    el.placeholder = old;
     el.style.borderColor = '';
   }, 2000);
 }
@@ -619,7 +655,7 @@ function buildQuiz() {
       q.blanks.forEach((b,bi) => {
         html = html.replace(b.key,
           `<input class="fill-input" id="fill-${q.id}-${bi}"
-            placeholder="${b.hint}"
+            placeholder=""
             autocomplete="off" spellcheck="false"
             oninput="updateProgress()">`);
       });
@@ -627,13 +663,13 @@ function buildQuiz() {
     } else if (q.type === 'essay') {
       inner += `
         <textarea class="answer-input" id="essay-${q.id}"
-          placeholder="Viết câu trả lời của bạn vào đây... (không được dán từ bên ngoài)"
+          placeholder=""
           spellcheck="false"
           oninput="updateProgress()"></textarea>`;
     } else if (q.type === 'calc') {
       inner += `
         <textarea class="answer-input" id="calc-${q.id}"
-          placeholder="Nhập đáp án (ví dụ: 4 × 6 inch) — tự gõ, không dán"
+          placeholder=""
           rows="2" style="min-height:60px"
           spellcheck="false"
           oninput="updateProgress()"></textarea>`;
@@ -681,6 +717,19 @@ function updateProgress() {
 // ─────────────────────────────────────────────
 function submitQuiz() {
   if (submitted) return;
+
+  // Validate student info
+  const stuName = document.getElementById('stu-name').value.trim();
+  const stuClass = document.getElementById('stu-class').value.trim();
+  if (!stuName || !stuClass) {
+    document.getElementById('stu-name').style.borderColor = stuName ? '' : 'var(--wrong)';
+    document.getElementById('stu-class').style.borderColor = stuClass ? '' : 'var(--wrong)';
+    document.getElementById('stu-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  document.getElementById('stu-name').readOnly = true;
+  document.getElementById('stu-class').readOnly = true;
+
   submitted = true;
   stopTimer();
 
@@ -758,6 +807,7 @@ function submitQuiz() {
   const total = QUESTIONS.length;
   const score = (correctCount / total * 10).toFixed(1);
   document.getElementById('r-score').textContent = `${score}/10`;
+  document.getElementById('r-student').textContent = `${stuName} — Lớp ${stuClass}`;
   document.getElementById('r-correct').textContent = correctCount;
   document.getElementById('r-wrong').textContent = total - correctCount;
   document.getElementById('r-time').textContent = formatTime(elapsedSeconds);
@@ -773,7 +823,10 @@ function submitQuiz() {
   document.getElementById('btn-retry').style.display = 'inline-flex';
 
   // store for export
-  window._quizResult = { score, correctCount, total, elapsed: formatTime(elapsedSeconds), details };
+  window._quizResult = { score, correctCount, total, elapsed: formatTime(elapsedSeconds), details,
+    name: document.getElementById('stu-name').value.trim(),
+    cls: document.getElementById('stu-class').value.trim()
+  };
 
   document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
 }
@@ -782,6 +835,12 @@ function submitQuiz() {
 //  RESET
 // ─────────────────────────────────────────────
 function resetQuiz() {
+  document.getElementById('stu-name').readOnly = false;
+  document.getElementById('stu-class').readOnly = false;
+  document.getElementById('stu-name').value = '';
+  document.getElementById('stu-class').value = '';
+  document.getElementById('stu-name').style.borderColor = '';
+  document.getElementById('stu-class').style.borderColor = '';
   submitted = false;
   tabCount = 0;
   tabLocked = false;
@@ -804,6 +863,8 @@ function exportTXT() {
   const r = window._quizResult;
   if (!r) return;
   let txt = `===== KẾT QUẢ BÀI KIỂM TRA =====\n`;
+  txt += `Trường: THPT Na Rì\n`;
+  txt += `Họ và tên: ${r.name}  |  Lớp: ${r.cls}\n`;
   txt += `Môn: Tin học 11 – Bài 25 – Mục 1: Ảnh Số\n`;
   txt += `Ngày: ${new Date().toLocaleDateString('vi-VN')}\n`;
   txt += `Điểm: ${r.score}/10  |  Đúng: ${r.correctCount}/${r.total}  |  Thời gian: ${r.elapsed}\n\n`;
@@ -822,11 +883,16 @@ function exportCSV() {
   const r = window._quizResult;
   if (!r) return;
   const BOM = '\uFEFF';
-  let csv = BOM + `"Câu","Loại","Câu hỏi","Trả lời của học sinh","Đáp án đúng","Kết quả"\n`;
+  let csv = BOM + `"Trường","THPT Na Rì"\n`;
+  csv += `"Họ và tên","${esc(r.name)}"\n`;
+  csv += `"Lớp","${esc(r.cls)}"\n`;
+  csv += `"Ngày","${new Date().toLocaleDateString('vi-VN')}"\n`;
+  csv += `"Điểm","${r.score}/10"\n`;
+  csv += `"Thời gian","${r.elapsed}"\n\n`;
+  csv += `"Câu","Loại","Câu hỏi","Trả lời của học sinh","Đáp án đúng","Kết quả"\n`;
   r.details.forEach(d => {
     csv += `"${d.idx}","${d.type}","${esc(d.question)}","${esc(d.userAnswer)}","${esc(d.correctAns)}","${d.isCorrect?'Đúng':'Sai'}"\n`;
   });
-  csv += `\n"","","","Điểm","${r.score}/10","Thời gian: ${r.elapsed}"`;
   download('ket-qua-anh-so.csv', csv, 'text/csv;charset=utf-8');
 }
 
@@ -850,7 +916,7 @@ const printStyle = document.createElement('style');
 printStyle.textContent = `
 @media print {
   header, #tab-warning, .btn-group, .notice, .export-group,
-  .progress-bar-wrap { display: none !important; }
+  .progress-bar-wrap, .student-info-bar { display: none !important; }
   body { background: white !important; color: #000 !important; }
   .question-card { border: 1px solid #ccc !important; break-inside: avoid; }
   #result-panel { display: block !important; border: 1px solid #ccc !important; }
